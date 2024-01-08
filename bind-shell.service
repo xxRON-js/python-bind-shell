@@ -1,0 +1,10 @@
+[Unit]
+Description=Bind Shell Service
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/bind_shell.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
